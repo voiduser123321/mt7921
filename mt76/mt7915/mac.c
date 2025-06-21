@@ -8,6 +8,10 @@
 #include "mac.h"
 #include "mcu.h"
 
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 19, 87)
+#include "linux-4.19-compat/include.h"
+#endif
+
 #define to_rssi(field, rxv)	((FIELD_GET(field, rxv) - 220) / 2)
 
 #define HE_BITS(f)		cpu_to_le16(IEEE80211_RADIOTAP_HE_##f)
@@ -173,8 +177,10 @@ static void mt7915_mac_sta_poll(struct mt7915_dev *dev)
 			if (!tx_cur && !rx_cur)
 				continue;
 
+			#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			ieee80211_sta_register_airtime(sta, tid, tx_cur,
 						       rx_cur);
+			#endif
 		}
 
 		/*

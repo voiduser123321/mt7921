@@ -60,15 +60,17 @@ mt76_tx_status_unlock(struct mt76_dev *dev, struct sk_buff_head *list)
 			.skb = skb,
 			.info = IEEE80211_SKB_CB(skb),
 		};
+
 		struct mt76_tx_cb *cb = mt76_tx_skb_cb(skb);
 		struct mt76_wcid *wcid;
 
 		wcid = rcu_dereference(dev->wcid[cb->wcid]);
 		if (wcid) {
 			status.sta = wcid_to_sta(wcid);
-
+			#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			if (status.sta)
 				status.rate = &wcid->rate;
+			#endif
 		}
 
 		hw = mt76_tx_status_get_hw(dev, skb);
@@ -211,11 +213,15 @@ static void
 mt76_tx_check_non_aql(struct mt76_dev *dev, struct mt76_wcid *wcid,
 		      struct sk_buff *skb)
 {
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
+	#endif
 	int pending;
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (!wcid || info->tx_time_est)
 		return;
+	#endif
 
 	pending = atomic_dec_return(&wcid->non_aql_packets);
 	if (pending < 0)
@@ -228,8 +234,11 @@ void __mt76_tx_complete_skb(struct mt76_dev *dev, u16 wcid_idx, struct sk_buff *
 	struct mt76_tx_cb *cb = mt76_tx_skb_cb(skb);
 	struct ieee80211_tx_status status = {
 		.skb = skb,
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		.free_list = free_list,
+		#endif
 	};
+
 	struct mt76_wcid *wcid = NULL;
 	struct ieee80211_hw *hw;
 	struct sk_buff_head list;
@@ -277,14 +286,21 @@ __mt76_tx_queue_skb(struct mt76_phy *phy, int qid, struct sk_buff *skb,
 		    struct mt76_wcid *wcid, struct ieee80211_sta *sta,
 		    bool *stop)
 {
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
+	#endif
 	struct mt76_queue *q = phy->q_tx[qid];
 	struct mt76_dev *dev = phy->dev;
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	bool non_aql;
+	#endif
 	int pending;
 	int idx;
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	non_aql = !info->tx_time_est;
+	#endif
+
 	idx = dev->queue_ops->tx_queue_skb(dev, q, skb, wcid, sta);
 	if (idx < 0 || !sta)
 		return idx;
@@ -292,8 +308,10 @@ __mt76_tx_queue_skb(struct mt76_phy *phy, int qid, struct sk_buff *skb,
 	wcid = (struct mt76_wcid *)sta->drv_priv;
 	q->entry[idx].wcid = wcid->idx;
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (!non_aql)
 		return idx;
+	#endif
 
 	pending = atomic_inc_return(&wcid->non_aql_packets);
 	if (stop && pending >= MT_MAX_NON_AQL_PKT)
@@ -419,7 +437,8 @@ mt76_release_buffered_frames(struct ieee80211_hw *hw, struct ieee80211_sta *sta,
 	if (last_skb) {
 		mt76_queue_ps_skb(phy, sta, last_skb, true);
 		dev->queue_ops->kick(dev, hwq);
-	} else {
+	} 
+	else {
 		ieee80211_sta_eosp(sta);
 	}
 
@@ -478,6 +497,7 @@ mt76_txq_send_burst(struct mt76_phy *phy, struct mt76_queue *q,
 			break;
 
 		info = IEEE80211_SKB_CB(skb);
+
 		if (!(wcid->tx_info & MT_WCID_TX_INFO_SET))
 			ieee80211_get_tx_rates(txq->vif, txq->sta, skb,
 					       info->control.rates, 1);
@@ -514,8 +534,11 @@ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
 		    q->queued + 2 * MT_TXQ_FREE_THR >= q->ndesc) {
 			dev->queue_ops->tx_cleanup(dev, q, false);
 		}
-
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		txq = ieee80211_next_txq(phy->hw, qid);
+		#else
+		txq = NULL;
+		#endif
 		if (!txq)
 			break;
 
@@ -544,7 +567,9 @@ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
 
 		spin_unlock_bh(&q->lock);
 
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		ieee80211_return_txq(phy->hw, txq, false);
+		#endif
 
 		if (unlikely(n_frames < 0))
 			return n_frames;
@@ -565,9 +590,13 @@ void mt76_txq_schedule(struct mt76_phy *phy, enum mt76_txq_id qid)
 	rcu_read_lock();
 
 	do {
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		ieee80211_txq_schedule_start(phy->hw, qid);
+		#endif
 		len = mt76_txq_schedule_list(phy, qid);
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		ieee80211_txq_schedule_end(phy->hw, qid);
+		#endif
 	} while (len > 0);
 
 	rcu_read_unlock();

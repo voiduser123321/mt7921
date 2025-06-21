@@ -398,10 +398,12 @@ mt7615_init_wiphy(struct ieee80211_hw *hw)
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_VHT_IBSS);
 
 	ieee80211_hw_set(hw, SINGLE_SCAN_ON_ALL_BANDS);
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	ieee80211_hw_set(hw, TX_STATUS_NO_AMPDU_LEN);
-	ieee80211_hw_set(hw, WANT_MONITOR_VIF);
 	ieee80211_hw_set(hw, SUPPORTS_RX_DECAP_OFFLOAD);
-
+	#endif
+	ieee80211_hw_set(hw, WANT_MONITOR_VIF);
+	
 	if (is_mt7615(&phy->dev->mt76))
 		hw->max_tx_fragments = MT_TXP_MAX_BUF_NUM;
 	else

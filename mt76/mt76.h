@@ -18,6 +18,13 @@
 #include "util.h"
 #include "testmode.h"
 
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 19, 87)
+#include "linux-4.19-compat/include.h"
+#define SURVEYINFO survey_info_linux_4_9_compat
+#else 
+#define SURVEYINFO survey_info
+#endif
+
 /* Defined in 5.0.xx - 5.16.xx */
 #ifdef IEEE80211_HE_PHY_CAP9_NOMIMAL_PKT_PADDING_16US
 #define IEEE80211_HE_PHY_CAP9_NOMINAL_PKT_PADDING_0US			0x0
@@ -1147,7 +1154,7 @@ void mt76_set_channel(struct mt76_phy *phy);
 void mt76_update_survey(struct mt76_phy *phy);
 void mt76_update_survey_active_time(struct mt76_phy *phy, ktime_t time);
 int mt76_get_survey(struct ieee80211_hw *hw, int idx,
-		    struct survey_info *survey);
+		    struct SURVEYINFO *survey);
 void mt76_set_stream_caps(struct mt76_phy *phy, bool vht);
 
 int mt76_rx_aggr_start(struct mt76_dev *dev, struct mt76_wcid *wcid, u8 tid,

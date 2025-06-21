@@ -16,10 +16,12 @@
 #include "mac.h"
 #include "mcu.h"
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static const struct sdio_device_id mt7921s_table[] = {
 	{ SDIO_DEVICE(SDIO_VENDOR_ID_MEDIATEK, 0x7901) },
 	{ }	/* Terminating entry */
 };
+#endif
 
 static void mt7921s_txrx_worker(struct mt76_worker *w)
 {
@@ -90,8 +92,11 @@ static int mt7921s_probe(struct sdio_func *func,
 	static const struct mt76_driver_ops drv_ops = {
 		.txwi_size = MT_SDIO_TXD_SIZE,
 		.survey_flags = SURVEY_INFO_TIME_TX |
-				SURVEY_INFO_TIME_RX |
-				SURVEY_INFO_TIME_BSS_RX,
+				SURVEY_INFO_TIME_RX 
+				#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
+				| SURVEY_INFO_TIME_BSS_RX
+				#endif
+				,
 		.tx_prepare_skb = mt7921_usb_sdio_tx_prepare_skb,
 		.tx_complete_skb = mt7921_usb_sdio_tx_complete_skb,
 		.tx_status_data = mt7921_usb_sdio_tx_status_data,
@@ -317,6 +322,8 @@ static struct sdio_driver mt7921s_driver = {
 	}
 #endif
 };
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 module_sdio_driver(mt7921s_driver);
+#endif
 MODULE_AUTHOR("Sean Wang <sean.wang@mediatek.com>");
 MODULE_LICENSE("Dual BSD/GPL");

@@ -1000,13 +1000,17 @@ void mt7615_mac_sta_poll(struct mt7615_dev *dev)
 		for (i = 0; i < 4; i++) {
 			u32 tx_cur = tx_time[i];
 			u32 rx_cur = rx_time[hw_queue_map[i]];
+			#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			u8 tid = ac_to_tid[i];
+			#endif
 
 			if (!tx_cur && !rx_cur)
 				continue;
 
+			#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			ieee80211_sta_register_airtime(sta, tid, tx_cur,
 						       rx_cur);
+			#endif
 		}
 	}
 }

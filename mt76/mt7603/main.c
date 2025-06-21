@@ -212,6 +212,7 @@ out:
 	return ret;
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static int mt7603_set_sar_specs(struct ieee80211_hw *hw,
 				const struct cfg80211_sar_specs *sar)
 {
@@ -228,6 +229,7 @@ static int mt7603_set_sar_specs(struct ieee80211_hw *hw,
 
 	return mt7603_set_channel(hw, &mphy->chandef);
 }
+#endif
 
 static int
 mt7603_config(struct ieee80211_hw *hw, u32 changed)
@@ -719,9 +721,13 @@ const struct ieee80211_ops mt7603_ops = {
 	.release_buffered_frames = mt7603_release_buffered_frames,
 	.set_coverage_class = mt7603_set_coverage_class,
 	.set_tim = mt76_set_tim,
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	.get_survey = mt76_get_survey,
+	#endif
 	.get_antenna = mt76_get_antenna,
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	.set_sar_specs = mt7603_set_sar_specs,
+	#endif
 };
 
 MODULE_LICENSE("Dual BSD/GPL");

@@ -10,7 +10,9 @@ static int
 mt76_wmac_probe(struct platform_device *pdev)
 {
 	struct mt7603_dev *dev;
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	void __iomem *mem_base;
+	#endif
 	struct mt76_dev *mdev;
 	int irq;
 	int ret;
@@ -19,9 +21,11 @@ mt76_wmac_probe(struct platform_device *pdev)
 	if (irq < 0)
 		return irq;
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	mem_base = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(mem_base))
 		return PTR_ERR(mem_base);
+	#endif
 
 	mdev = mt76_alloc_device(&pdev->dev, sizeof(*dev), &mt7603_ops,
 				 &mt7603_drv_ops);
@@ -29,7 +33,9 @@ mt76_wmac_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	dev = container_of(mdev, struct mt7603_dev, mt76);
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	mt76_mmio_init(mdev, mem_base);
+	#endif
 
 	mdev->rev = (mt76_rr(dev, MT_HW_CHIPID) << 16) |
 		    (mt76_rr(dev, MT_HW_REV) & 0xff);

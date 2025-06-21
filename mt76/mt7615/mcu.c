@@ -730,6 +730,7 @@ mt7615_mcu_add_beacon_offload(struct mt7615_dev *dev,
 	memcpy(req.pkt + MT_TXD_SIZE, skb->data, skb->len);
 	req.pkt_len = cpu_to_le16(MT_TXD_SIZE + skb->len);
 	req.tim_ie_pos = cpu_to_le16(MT_TXD_SIZE + offs.tim_offset);
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (offs.cntdwn_counter_offs[0]) {
 		u16 csa_offs;
 
@@ -737,6 +738,7 @@ mt7615_mcu_add_beacon_offload(struct mt7615_dev *dev,
 		req.csa_ie_pos = cpu_to_le16(csa_offs);
 		req.csa_cnt = skb->data[offs.cntdwn_counter_offs[0]];
 	}
+#endif
 	dev_kfree_skb(skb);
 
 out:
@@ -1096,12 +1098,14 @@ mt7615_mcu_uni_add_beacon_offload(struct mt7615_dev *dev,
 	req.beacon_tlv.pkt_len = cpu_to_le16(MT_TXD_SIZE + skb->len);
 	req.beacon_tlv.tim_ie_pos = cpu_to_le16(MT_TXD_SIZE + offs.tim_offset);
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (offs.cntdwn_counter_offs[0]) {
 		u16 csa_offs;
 
 		csa_offs = MT_TXD_SIZE + offs.cntdwn_counter_offs[0] - 4;
 		req.beacon_tlv.csa_ie_pos = cpu_to_le16(csa_offs);
 	}
+#endif
 	dev_kfree_skb(skb);
 
 out:

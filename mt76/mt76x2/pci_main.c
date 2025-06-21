@@ -159,6 +159,8 @@ const struct ieee80211_ops mt76x2_ops = {
 	.get_antenna = mt76_get_antenna,
 	.set_rts_threshold = mt76x02_set_rts_threshold,
 	.reconfig_complete = mt76x02_reconfig_complete,
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	.set_sar_specs = mt76x2_set_sar_specs,
+#endif
 };
 

@@ -104,6 +104,7 @@ mt7915_mcu_get_sta_nss(u16 mcs_map)
 	return nss - 1;
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void
 mt7915_mcu_set_sta_he_mcs(struct ieee80211_sta *sta, __le16 *he_mcs,
 			  u16 mcs_map)
@@ -158,6 +159,7 @@ mt7915_mcu_set_sta_he_mcs(struct ieee80211_sta *sta, __le16 *he_mcs,
 
 	*he_mcs = cpu_to_le16(mcs_map);
 }
+#endif
 
 static void
 mt7915_mcu_set_sta_vht_mcs(struct ieee80211_sta *sta, __le16 *vht_mcs,
@@ -376,7 +378,7 @@ mt7915_mcu_rx_radar_detected(struct mt7915_dev *dev, struct sk_buff *skb)
 //						&dev->rdd2_chandef,
 //						GFP_ATOMIC);
 //	else
-		ieee80211_radar_detected(mphy->hw);
+	ieee80211_radar_detected(mphy->hw);
 	dev->hw_pattern++;
 }
 
@@ -409,10 +411,12 @@ mt7915_mcu_rx_log_message(struct mt7915_dev *dev, struct sk_buff *skb)
 static void
 mt7915_mcu_cca_finish(void *priv, u8 *mac, struct ieee80211_vif *vif)
 {
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (!vif->color_change_active)
 		return;
 
 	ieee80211_color_change_finish(vif);
+#endif
 }
 
 static void
@@ -515,15 +519,19 @@ static void mt7915_check_he_obss_narrow_bw_ru_iter(struct wiphy *wiphy,
 						   void *_data)
 {
 	struct mt7915_he_obss_narrow_bw_ru_data *data = _data;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	const struct element *elem;
+#endif
 
 	rcu_read_lock();
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	elem = ieee80211_bss_get_elem(bss, WLAN_EID_EXT_CAPABILITY);
 
 	if (!elem || elem->datalen <= 10 ||
 	    !(elem->data[10] &
 	      WLAN_EXT_CAPA10_OBSS_NARROW_BW_RU_TOLERANCE_SUPPORT))
 		data->tolerated = false;
+#endif
 
 	rcu_read_unlock();
 }
@@ -537,10 +545,11 @@ static bool mt7915_check_he_obss_narrow_bw_ru(struct ieee80211_hw *hw,
 
 	if (!(vif->bss_conf.chandef.chan->flags & IEEE80211_CHAN_RADAR))
 		return false;
-
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	cfg80211_bss_iter(hw->wiphy, &vif->bss_conf.chandef,
 			  mt7915_check_he_obss_narrow_bw_ru_iter,
 			  &iter_data);
+#endif
 
 	/*
 	 * If there is at least one AP on radar channel that cannot
@@ -618,7 +627,9 @@ mt7915_mcu_bss_he_tlv(struct sk_buff *skb, struct ieee80211_vif *vif,
 	struct bss_info_he *he;
 	struct tlv *tlv;
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	cap = mt76_connac_get_he_phy_cap(phy->mt76, vif);
+	#endif
 
 	tlv = mt76_connac_mcu_add_tlv(skb, BSS_INFO_HE_BASIC, sizeof(*he));
 
@@ -631,9 +642,11 @@ mt7915_mcu_bss_he_tlv(struct sk_buff *skb, struct ieee80211_vif *vif,
 	if (!he->he_rts_thres)
 		he->he_rts_thres = cpu_to_le16(DEFAULT_HE_DURATION_RTS_THRES);
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	he->max_nss_mcs[CMD_HE_MCS_BW80] = cap->he_mcs_nss_supp.tx_mcs_80;
 	he->max_nss_mcs[CMD_HE_MCS_BW160] = cap->he_mcs_nss_supp.tx_mcs_160;
 	he->max_nss_mcs[CMD_HE_MCS_BW8080] = cap->he_mcs_nss_supp.tx_mcs_80p80;
+	#endif
 }
 
 static void
@@ -810,8 +823,10 @@ mt7915_mcu_sta_he_tlv(struct sk_buff *skb, struct ieee80211_sta *sta,
 	if (elem->mac_cap_info[3] & IEEE80211_HE_MAC_CAP3_OMI_CONTROL)
 		cap |= STA_REC_HE_CAP_OM;
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (elem->mac_cap_info[4] & IEEE80211_HE_MAC_CAP4_AMSDU_IN_AMPDU)
 		cap |= STA_REC_HE_CAP_AMSDU_IN_AMPDU;
+#endif
 
 	if (elem->mac_cap_info[4] & IEEE80211_HE_MAC_CAP4_BQR)
 		cap |= STA_REC_HE_CAP_BQR;
@@ -870,6 +885,7 @@ mt7915_mcu_sta_he_tlv(struct sk_buff *skb, struct ieee80211_sta *sta,
 	    IEEE80211_HE_PHY_CAP8_HE_ER_SU_1XLTF_AND_08_US_GI)
 		cap |= STA_REC_HE_CAP_ER_SU_PPDU_1LTF_8US_GI;
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (elem->phy_cap_info[9] &
 	    IEEE80211_HE_PHY_CAP9_TX_1024_QAM_LESS_THAN_242_TONE_RU)
 		cap |= STA_REC_HE_CAP_TX_1024QAM_UNDER_RU242;
@@ -878,8 +894,11 @@ mt7915_mcu_sta_he_tlv(struct sk_buff *skb, struct ieee80211_sta *sta,
 	    IEEE80211_HE_PHY_CAP9_RX_1024_QAM_LESS_THAN_242_TONE_RU)
 		cap |= STA_REC_HE_CAP_RX_1024QAM_UNDER_RU242;
 
+#endif
+
 	he->he_cap = cpu_to_le32(cap);
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	mcs_map = sta->he_cap.he_mcs_nss_supp;
 	switch (sta->bandwidth) {
 	case IEEE80211_STA_RX_BW_160:
@@ -899,6 +918,7 @@ mt7915_mcu_sta_he_tlv(struct sk_buff *skb, struct ieee80211_sta *sta,
 					  le16_to_cpu(mcs_map.rx_mcs_80));
 		break;
 	}
+#endif
 
 	he->t_frame_dur =
 		HE_MAC(CAP1_TF_MAC_PAD_DUR_MASK, elem->mac_cap_info[1]);
@@ -1193,6 +1213,7 @@ mt7915_mcu_sta_bfer_vht(struct ieee80211_sta *sta, struct mt7915_phy *phy,
 	}
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void
 mt7915_mcu_sta_bfer_he(struct ieee80211_sta *sta, struct ieee80211_vif *vif,
 		       struct mt7915_phy *phy, struct sta_rec_bf *bf)
@@ -1252,6 +1273,7 @@ mt7915_mcu_sta_bfer_he(struct ieee80211_sta *sta, struct ieee80211_vif *vif,
 
 	bf->nrow_bw160 = min_t(int, snd_dim, sts);
 }
+#endif
 
 static void
 mt7915_mcu_sta_bfer_tlv(struct mt7915_dev *dev, struct sk_buff *skb,
@@ -1284,9 +1306,12 @@ mt7915_mcu_sta_bfer_tlv(struct mt7915_dev *dev, struct sk_buff *skb,
 	 * vht: support eBF and iBF
 	 * ht: iBF only, since mac80211 lacks of eBF support
 	 */
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (sta->he_cap.has_he && ebf)
 		mt7915_mcu_sta_bfer_he(sta, vif, phy, bf);
-	else if (sta->vht_cap.vht_supported)
+	else 
+	#endif
+	if (sta->vht_cap.vht_supported)
 		mt7915_mcu_sta_bfer_vht(sta, phy, bf, ebf);
 	else if (sta->ht_cap.ht_supported)
 		mt7915_mcu_sta_bfer_ht(sta, phy, bf);

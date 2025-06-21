@@ -172,13 +172,16 @@ static void mt7915_unregister_thermal(struct mt7915_phy *phy)
 static int mt7915_thermal_init(struct mt7915_phy *phy)
 {
 	struct wiphy *wiphy = phy->mt76->hw->wiphy;
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	struct thermal_cooling_device *cdev;
+	#endif
 	struct device *hwmon;
 	const char *name;
 
 	name = devm_kasprintf(&wiphy->dev, GFP_KERNEL, "mt7915_%s",
 			      wiphy_name(wiphy));
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	cdev = thermal_cooling_device_register(name, phy, &mt7915_thermal_ops);
 	if (!IS_ERR(cdev)) {
 		if (sysfs_create_link(&wiphy->dev.kobj, &cdev->device.kobj,
@@ -187,6 +190,7 @@ static int mt7915_thermal_init(struct mt7915_phy *phy)
 		else
 			phy->cdev = cdev;
 	}
+	#endif
 
 	if (!IS_REACHABLE(CONFIG_HWMON))
 		return 0;
@@ -345,12 +349,16 @@ mt7915_init_wiphy(struct ieee80211_hw *hw)
 	wiphy->flags |= WIPHY_FLAG_HAS_CHANNEL_SWITCH;
 	//wiphy->mbssid_max_interfaces = 16;
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_BSS_COLOR);
+#endif
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_VHT_IBSS);
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_BEACON_RATE_LEGACY);
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_BEACON_RATE_HT);
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_BEACON_RATE_VHT);
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_BEACON_RATE_HE);
+#endif
 /*
 	if (!mdev->dev->of_node ||
 	    !of_property_read_bool(mdev->dev->of_node,
@@ -359,9 +367,11 @@ mt7915_init_wiphy(struct ieee80211_hw *hw)
 				      NL80211_EXT_FEATURE_RADAR_BACKGROUND);
 */
 	ieee80211_hw_set(hw, HAS_RATE_CONTROL);
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	ieee80211_hw_set(hw, SUPPORTS_TX_ENCAP_OFFLOAD);
 	ieee80211_hw_set(hw, SUPPORTS_RX_DECAP_OFFLOAD);
 	ieee80211_hw_set(hw, SUPPORTS_MULTI_BSSID);
+#endif
 	ieee80211_hw_set(hw, WANT_MONITOR_VIF);
 
 	hw->max_tx_fragments = 4;
@@ -753,9 +763,11 @@ mt7915_set_stream_he_txbf_caps(struct mt7915_dev *dev,
 	    IEEE80211_HE_PHY_CAP5_BEAMFORMEE_NUM_SND_DIM_ABOVE_80MHZ_MASK;
 	elem->phy_cap_info[5] &= ~c;
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	c = IEEE80211_HE_PHY_CAP6_TRIG_SU_BEAMFORMING_FB |
 	    IEEE80211_HE_PHY_CAP6_TRIG_MU_BEAMFORMING_PARTIAL_BW_FB;
 	elem->phy_cap_info[6] &= ~c;
+	#endif
 
 	elem->phy_cap_info[7] &= ~IEEE80211_HE_PHY_CAP7_MAX_NC_MASK;
 
@@ -799,9 +811,11 @@ mt7915_set_stream_he_txbf_caps(struct mt7915_dev *dev,
 		       nss_160 - 1);
 	elem->phy_cap_info[5] |= c;
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	c = IEEE80211_HE_PHY_CAP6_TRIG_SU_BEAMFORMING_FB |
 	    IEEE80211_HE_PHY_CAP6_TRIG_MU_BEAMFORMING_PARTIAL_BW_FB;
 	elem->phy_cap_info[6] |= c;
+	#endif
 
 	if (!is_mt7915(&dev->mt76)) {
 		c = IEEE80211_HE_PHY_CAP7_STBC_TX_ABOVE_80MHZ |
@@ -882,11 +896,13 @@ mt7915_init_he_caps(struct mt7915_phy *phy, enum nl80211_band band,
 
 		he_cap_elem->mac_cap_info[0] =
 			IEEE80211_HE_MAC_CAP0_HTC_HE;
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		he_cap_elem->mac_cap_info[3] =
 			IEEE80211_HE_MAC_CAP3_OMI_CONTROL |
 			IEEE80211_HE_MAC_CAP3_MAX_AMPDU_LEN_EXP_EXT_3;
 		he_cap_elem->mac_cap_info[4] =
 			IEEE80211_HE_MAC_CAP4_AMSDU_IN_AMPDU;
+		#endif
 
 		if (band == NL80211_BAND_2GHZ)
 			he_cap_elem->phy_cap_info[0] =
@@ -911,17 +927,21 @@ mt7915_init_he_caps(struct mt7915_phy *phy, enum nl80211_band band,
 				IEEE80211_HE_MAC_CAP2_BSR;
 			he_cap_elem->mac_cap_info[4] |=
 				IEEE80211_HE_MAC_CAP4_BQR;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			he_cap_elem->mac_cap_info[5] |=
 				IEEE80211_HE_MAC_CAP5_OM_CTRL_UL_MU_DATA_DIS_RX;
+#endif
 			he_cap_elem->phy_cap_info[3] |=
 				IEEE80211_HE_PHY_CAP3_DCM_MAX_CONST_TX_QPSK |
 				IEEE80211_HE_PHY_CAP3_DCM_MAX_CONST_RX_QPSK;
 			he_cap_elem->phy_cap_info[6] |=
 				IEEE80211_HE_PHY_CAP6_PARTIAL_BW_EXT_RANGE |
 				IEEE80211_HE_PHY_CAP6_PPE_THRESHOLD_PRESENT;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			he_cap_elem->phy_cap_info[9] |=
 				IEEE80211_HE_PHY_CAP9_TX_1024_QAM_LESS_THAN_242_TONE_RU |
 				IEEE80211_HE_PHY_CAP9_RX_1024_QAM_LESS_THAN_242_TONE_RU;
+#endif
 			break;
 		case NL80211_IFTYPE_STATION:
 			he_cap_elem->mac_cap_info[1] |=
@@ -944,6 +964,7 @@ mt7915_init_he_caps(struct mt7915_phy *phy, enum nl80211_band band,
 				IEEE80211_HE_PHY_CAP6_TRIG_CQI_FB |
 				IEEE80211_HE_PHY_CAP6_PARTIAL_BW_EXT_RANGE |
 				IEEE80211_HE_PHY_CAP6_PPE_THRESHOLD_PRESENT;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			he_cap_elem->phy_cap_info[7] |=
 				IEEE80211_HE_PHY_CAP7_POWER_BOOST_FACTOR_SUPP |
 				IEEE80211_HE_PHY_CAP7_HE_SU_MU_PPDU_4XLTF_AND_08_US_GI;
@@ -959,6 +980,7 @@ mt7915_init_he_caps(struct mt7915_phy *phy, enum nl80211_band band,
 				IEEE80211_HE_PHY_CAP9_RX_1024_QAM_LESS_THAN_242_TONE_RU |
 				IEEE80211_HE_PHY_CAP9_RX_FULL_BW_SU_USING_MU_WITH_COMP_SIGB |
 				IEEE80211_HE_PHY_CAP9_RX_FULL_BW_SU_USING_MU_WITH_NON_COMP_SIGB;
+#endif
 			break;
 		}
 

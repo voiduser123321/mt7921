@@ -365,10 +365,12 @@ static int mt7615_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 
 	/* fall back to sw encryption for unsupported ciphers */
 	switch (key->cipher) {
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	case WLAN_CIPHER_SUITE_AES_CMAC:
 		wcid_keyidx = &wcid->hw_key_idx2;
 		key->flags |= IEEE80211_KEY_FLAG_GENERATE_MMIE;
 		break;
+	#endif
 	case WLAN_CIPHER_SUITE_TKIP:
 	case WLAN_CIPHER_SUITE_CCMP:
 	case WLAN_CIPHER_SUITE_CCMP_256:
@@ -410,6 +412,7 @@ out:
 	return err;
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static int mt7615_set_sar_specs(struct ieee80211_hw *hw,
 				const struct cfg80211_sar_specs *sar)
 {
@@ -432,6 +435,7 @@ static int mt7615_set_sar_specs(struct ieee80211_hw *hw,
 
 	return err;
 }
+#endif
 
 static int mt7615_config(struct ieee80211_hw *hw, u32 changed)
 {
@@ -1167,6 +1171,7 @@ out:
 	return err;
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static int mt7615_cancel_remain_on_channel(struct ieee80211_hw *hw,
 					   struct ieee80211_vif *vif)
 {
@@ -1185,7 +1190,9 @@ static int mt7615_cancel_remain_on_channel(struct ieee80211_hw *hw,
 
 	return err;
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void mt7615_sta_set_decap_offload(struct ieee80211_hw *hw,
 				 struct ieee80211_vif *vif,
 				 struct ieee80211_sta *sta,
@@ -1201,6 +1208,7 @@ static void mt7615_sta_set_decap_offload(struct ieee80211_hw *hw,
 
 	mt7615_mcu_set_sta_decap_offload(dev, vif, sta);
 }
+#endif
 
 #ifdef CONFIG_PM
 static int mt7615_suspend(struct ieee80211_hw *hw,
@@ -1303,7 +1311,9 @@ const struct ieee80211_ops mt7615_ops = {
 	.sta_remove = mt7615_sta_remove,
 	.sta_pre_rcu_remove = mt76_sta_pre_rcu_remove,
 	.set_key = mt7615_set_key,
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	.sta_set_decap_offload = mt7615_sta_set_decap_offload,
+#endif
 	.ampdu_action = mt7615_ampdu_action,
 	.set_rts_threshold = mt7615_set_rts_threshold,
 	.wake_tx_queue = mt76_wake_tx_queue,
@@ -1317,7 +1327,9 @@ const struct ieee80211_ops mt7615_ops = {
 	.get_tsf = mt7615_get_tsf,
 	.set_tsf = mt7615_set_tsf,
 	.offset_tsf = mt7615_offset_tsf,
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	.get_survey = mt76_get_survey,
+#endif
 	.get_antenna = mt76_get_antenna,
 	.set_antenna = mt7615_set_antenna,
 	.set_coverage_class = mt7615_set_coverage_class,
@@ -1326,7 +1338,9 @@ const struct ieee80211_ops mt7615_ops = {
 	.sched_scan_start = mt7615_start_sched_scan,
 	.sched_scan_stop = mt7615_stop_sched_scan,
 	.remain_on_channel = mt7615_remain_on_channel,
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	.cancel_remain_on_channel = mt7615_cancel_remain_on_channel,
+#endif
 	CFG80211_TESTMODE_CMD(mt76_testmode_cmd)
 	CFG80211_TESTMODE_DUMP(mt76_testmode_dump)
 #ifdef CONFIG_PM
@@ -1335,7 +1349,9 @@ const struct ieee80211_ops mt7615_ops = {
 	.set_wakeup = mt7615_set_wakeup,
 	.set_rekey_data = mt7615_set_rekey_data,
 #endif /* CONFIG_PM */
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	.set_sar_specs = mt7615_set_sar_specs,
+#endif
 };
 EXPORT_SYMBOL_GPL(mt7615_ops);
 

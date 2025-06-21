@@ -859,9 +859,11 @@ int mt7921_mcu_set_chan_info(struct mt7921_phy *phy, int cmd)
 		.band_idx = phy != &dev->phy,
 	};
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (chandef->chan->band == NL80211_BAND_6GHZ)
 		req.channel_band = 2;
-	else
+	else 
+	#endif
 		req.channel_band = chandef->chan->band;
 
 	if (cmd == MCU_EXT_CMD(SET_RX_PATH) ||

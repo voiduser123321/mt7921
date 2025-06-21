@@ -174,13 +174,17 @@ static void mt7915_init_bitrate_mask(struct ieee80211_vif *vif)
 
 	for (i = 0; i < ARRAY_SIZE(mvif->bitrate_mask.control); i++) {
 		mvif->bitrate_mask.control[i].gi = NL80211_TXRATE_DEFAULT_GI;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		mvif->bitrate_mask.control[i].he_gi = GENMASK(7, 0);
 		mvif->bitrate_mask.control[i].he_ltf = GENMASK(7, 0);
+#endif
 		mvif->bitrate_mask.control[i].legacy = GENMASK(31, 0);
 		memset(mvif->bitrate_mask.control[i].ht_mcs, GENMASK(7, 0),
 		       sizeof(mvif->bitrate_mask.control[i].ht_mcs));
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		memset(mvif->bitrate_mask.control[i].vht_mcs, GENMASK(15, 0),
 		       sizeof(mvif->bitrate_mask.control[i].vht_mcs));
+#endif
 		memset(mvif->bitrate_mask.control[i].he_mcs, GENMASK(15, 0),
 		       sizeof(mvif->bitrate_mask.control[i].he_mcs));
 	}
@@ -249,10 +253,12 @@ static int mt7915_add_interface(struct ieee80211_hw *hw,
 		mtxq->wcid = idx;
 	}
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (vif->type != NL80211_IFTYPE_AP &&
 	    (!mvif->mt76.omac_idx || mvif->mt76.omac_idx > 3))
 		vif->offload_flags = 0;
 	vif->offload_flags |= IEEE80211_OFFLOAD_ENCAP_4ADDR;
+#endif
 
 	mt7915_init_bitrate_mask(vif);
 	memset(&mvif->cap, -1, sizeof(mvif->cap));
@@ -371,10 +377,12 @@ static int mt7915_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 
 	/* fall back to sw encryption for unsupported ciphers */
 	switch (key->cipher) {
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	case WLAN_CIPHER_SUITE_AES_CMAC:
 		wcid_keyidx = &wcid->hw_key_idx2;
 		key->flags |= IEEE80211_KEY_FLAG_GENERATE_MMIE;
 		break;
+	#endif
 	case WLAN_CIPHER_SUITE_TKIP:
 	case WLAN_CIPHER_SUITE_CCMP:
 	case WLAN_CIPHER_SUITE_CCMP_256:
@@ -414,6 +422,7 @@ out:
 	return err;
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static int mt7915_set_sar_specs(struct ieee80211_hw *hw,
 				const struct cfg80211_sar_specs *sar)
 {
@@ -435,6 +444,7 @@ out:
 
 	return err;
 }
+#endif
 
 static int mt7915_config(struct ieee80211_hw *hw, u32 changed)
 {
@@ -555,6 +565,7 @@ static void mt7915_configure_filter(struct ieee80211_hw *hw,
 	mutex_unlock(&dev->mt76.mutex);
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void
 mt7915_update_bss_color(struct ieee80211_hw *hw,
 			struct ieee80211_vif *vif,
@@ -577,6 +588,7 @@ mt7915_update_bss_color(struct ieee80211_hw *hw,
 		break;
 	}
 }
+#endif
 
 static void mt7915_bss_info_changed(struct ieee80211_hw *hw,
 				    struct ieee80211_vif *vif,
@@ -602,7 +614,9 @@ static void mt7915_bss_info_changed(struct ieee80211_hw *hw,
 
 	if (changed & BSS_CHANGED_ASSOC) {
 		mt7915_mcu_add_bss_info(phy, vif, info->assoc);
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		mt7915_mcu_add_obss_spr(dev, vif, info->he_obss_pd.enable);
+	#endif
 	}
 
 	if (changed & BSS_CHANGED_ERP_SLOT) {
@@ -623,11 +637,13 @@ static void mt7915_bss_info_changed(struct ieee80211_hw *hw,
 	if (changed & (BSS_CHANGED_QOS | BSS_CHANGED_BEACON_ENABLED))
 		mt7915_mcu_set_tx(dev, vif);
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (changed & BSS_CHANGED_HE_OBSS_PD)
 		mt7915_mcu_add_obss_spr(dev, vif, info->he_obss_pd.enable);
 
 	if (changed & BSS_CHANGED_HE_BSS_COLOR)
 		mt7915_update_bss_color(hw, vif, &info->he_bss_color);
+#endif
 
 	if (changed & (BSS_CHANGED_BEACON |
 		       BSS_CHANGED_BEACON_ENABLED))
@@ -1403,7 +1419,9 @@ const struct ieee80211_ops mt7915_ops = {
 	.sw_scan_complete = mt76_sw_scan_complete,
 	.release_buffered_frames = mt76_release_buffered_frames,
 	.get_txpower = mt76_get_txpower,
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	.set_sar_specs = mt7915_set_sar_specs,
+#endif
 	.channel_switch_beacon = mt7915_channel_switch_beacon,
 	.get_stats = mt7915_get_stats,
 	.get_et_sset_count = mt7915_get_et_sset_count,
@@ -1420,7 +1438,9 @@ const struct ieee80211_ops mt7915_ops = {
 	.sta_statistics = mt7915_sta_statistics,
 	.sta_set_4addr = mt7915_sta_set_4addr,
 	.sta_set_decap_offload = mt7915_sta_set_decap_offload,
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	.add_twt_setup = mt7915_mac_add_twt_setup,
+#endif
 	.twt_teardown_request = mt7915_twt_teardown_request,
 	CFG80211_TESTMODE_CMD(mt76_testmode_cmd)
 	CFG80211_TESTMODE_DUMP(mt76_testmode_dump)

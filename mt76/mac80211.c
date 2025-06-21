@@ -20,12 +20,14 @@
 	.max_power = 30,			\
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 #define CHAN6G(_idx, _freq) {			\
 	.band = NL80211_BAND_6GHZ,		\
 	.center_freq = (_freq),			\
 	.hw_value = (_idx),			\
 	.max_power = 30,			\
 }
+#endif
 
 static const struct ieee80211_channel mt76_channels_2ghz[] = {
 	CHAN2G(1, 2412),
@@ -77,6 +79,7 @@ static const struct ieee80211_channel mt76_channels_5ghz[] = {
 	CHAN5G(173, 5865),
 };
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static const struct ieee80211_channel mt76_channels_6ghz[] = {
 	/* UNII-5 */
 	CHAN6G(1, 5955),
@@ -142,6 +145,7 @@ static const struct ieee80211_channel mt76_channels_6ghz[] = {
 	CHAN6G(229, 7095),
 	CHAN6G(233, 7115),
 };
+#endif
 
 static const struct ieee80211_tpt_blink mt76_tpt_blink[] = {
 	{ .throughput =   0 * 1024, .blink_time = 334 },
@@ -271,8 +275,10 @@ void mt76_set_stream_caps(struct mt76_phy *phy, bool vht)
 		mt76_init_stream_cap(phy, &phy->sband_2g.sband, false);
 	if (phy->cap.has_5ghz)
 		mt76_init_stream_cap(phy, &phy->sband_5g.sband, vht);
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (phy->cap.has_6ghz)
 		mt76_init_stream_cap(phy, &phy->sband_6g.sband, vht);
+	#endif
 }
 EXPORT_SYMBOL_GPL(mt76_set_stream_caps);
 
@@ -355,6 +361,7 @@ mt76_init_sband_5g(struct mt76_phy *phy, struct ieee80211_rate *rates,
 			       n_rates, true, vht);
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static int
 mt76_init_sband_6g(struct mt76_phy *phy, struct ieee80211_rate *rates,
 		   int n_rates)
@@ -365,6 +372,7 @@ mt76_init_sband_6g(struct mt76_phy *phy, struct ieee80211_rate *rates,
 			       ARRAY_SIZE(mt76_channels_6ghz), rates,
 			       n_rates, false, false);
 }
+#endif
 
 static void
 mt76_check_sband(struct mt76_phy *phy, struct mt76_sband *msband,
@@ -431,7 +439,9 @@ mt76_phy_init(struct mt76_phy *phy, struct ieee80211_hw *hw)
 
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_CQM_RSSI_LIST);
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_AIRTIME_FAIRNESS);
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_AQL);
+	#endif
 
 	wiphy->available_antennas_tx = phy->antenna_mask;
 	wiphy->available_antennas_rx = phy->antenna_mask;
@@ -520,16 +530,20 @@ int mt76_register_phy(struct mt76_phy *phy, bool vht,
 			return ret;
 	}
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (phy->cap.has_6ghz) {
 		ret = mt76_init_sband_6g(phy, rates + 4, n_rates - 4);
 		if (ret)
 			return ret;
 	}
+	#endif
 
 	wiphy_read_of_freq_limits(phy->hw->wiphy);
 	mt76_check_sband(phy, &phy->sband_2g, NL80211_BAND_2GHZ);
 	mt76_check_sband(phy, &phy->sband_5g, NL80211_BAND_5GHZ);
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	mt76_check_sband(phy, &phy->sband_6g, NL80211_BAND_6GHZ);
+	#endif
 
 	ret = ieee80211_register_hw(phy->hw);
 	if (ret)
@@ -641,16 +655,20 @@ int mt76_register_device(struct mt76_dev *dev, bool vht,
 			return ret;
 	}
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (phy->cap.has_6ghz) {
 		ret = mt76_init_sband_6g(phy, rates + 4, n_rates - 4);
 		if (ret)
 			return ret;
 	}
+	#endif
 
 	wiphy_read_of_freq_limits(hw->wiphy);
 	mt76_check_sband(&dev->phy, &phy->sband_2g, NL80211_BAND_2GHZ);
 	mt76_check_sband(&dev->phy, &phy->sband_5g, NL80211_BAND_5GHZ);
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	mt76_check_sband(&dev->phy, &phy->sband_6g, NL80211_BAND_6GHZ);
+	#endif
 
 	if (IS_ENABLED(CONFIG_MT76_LEDS)) {
 		ret = mt76_led_init(dev);
@@ -796,8 +814,10 @@ mt76_channel_state(struct mt76_phy *phy, struct ieee80211_channel *c)
 
 	if (c->band == NL80211_BAND_2GHZ)
 		msband = &phy->sband_2g;
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	else if (c->band == NL80211_BAND_6GHZ)
 		msband = &phy->sband_6g;
+	#endif
 	else
 		msband = &phy->sband_5g;
 
@@ -864,7 +884,7 @@ void mt76_set_channel(struct mt76_phy *phy)
 EXPORT_SYMBOL_GPL(mt76_set_channel);
 
 int mt76_get_survey(struct ieee80211_hw *hw, int idx,
-		    struct survey_info *survey)
+		    struct SURVEYINFO *survey)
 {
 	struct mt76_phy *phy = hw->priv;
 	struct mt76_dev *dev = phy->dev;
@@ -876,13 +896,15 @@ int mt76_get_survey(struct ieee80211_hw *hw, int idx,
 	mutex_lock(&dev->mutex);
 	if (idx == 0 && dev->drv->update_survey)
 		mt76_update_survey(phy);
-
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (idx >= phy->sband_2g.sband.n_channels +
 		   phy->sband_5g.sband.n_channels) {
 		idx -= (phy->sband_2g.sband.n_channels +
 			phy->sband_5g.sband.n_channels);
 		sband = &phy->sband_6g;
-	} else if (idx >= phy->sband_2g.sband.n_channels) {
+	} else 
+	#endif 
+	if (idx >= phy->sband_2g.sband.n_channels) {
 		idx -= phy->sband_2g.sband.n_channels;
 		sband = &phy->sband_5g;
 	} else {
@@ -907,8 +929,10 @@ int mt76_get_survey(struct ieee80211_hw *hw, int idx,
 	if (chan == phy->main_chan) {
 		survey->filled |= SURVEY_INFO_IN_USE;
 
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		if (dev->drv->drv_flags & MT_DRV_SW_RX_AIRTIME)
 			survey->filled |= SURVEY_INFO_TIME_BSS_RX;
+		#endif
 	}
 
 	survey->time_busy = div_u64(state->cc_busy, 1000);
@@ -1088,6 +1112,7 @@ skip_hdr_check:
 	return 0;
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void
 mt76_airtime_report(struct mt76_dev *dev, struct mt76_rx_status *status,
 		    int len)
@@ -1116,6 +1141,7 @@ mt76_airtime_report(struct mt76_dev *dev, struct mt76_rx_status *status,
 	sta = container_of((void *)wcid, struct ieee80211_sta, drv_priv);
 	ieee80211_sta_register_airtime(sta, tidno, 0, airtime);
 }
+#endif
 
 static void
 mt76_airtime_flush_ampdu(struct mt76_dev *dev)
@@ -1133,7 +1159,9 @@ mt76_airtime_flush_ampdu(struct mt76_dev *dev)
 		wcid = NULL;
 	dev->rx_ampdu_status.wcid = wcid;
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	mt76_airtime_report(dev, &dev->rx_ampdu_status, dev->rx_ampdu_len);
+	#endif
 
 	dev->rx_ampdu_len = 0;
 	dev->rx_ampdu_ref = 0;
@@ -1175,8 +1203,10 @@ mt76_airtime_check(struct mt76_dev *dev, struct sk_buff *skb)
 		dev->rx_ampdu_len += skb->len;
 		return;
 	}
-
+	
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	mt76_airtime_report(dev, status, skb->len);
+	#endif
 }
 
 static void
@@ -1265,7 +1295,9 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
 
 		skb_shinfo(skb)->frag_list = NULL;
 		mt76_rx_convert(dev, skb, &hw, &sta);
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		ieee80211_rx_list(hw, sta, skb, &list);
+		#endif
 
 		/* subsequent amsdu frames */
 		while (nskb) {
@@ -1274,7 +1306,9 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
 			skb->next = NULL;
 
 			mt76_rx_convert(dev, skb, &hw, &sta);
+			#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			ieee80211_rx_list(hw, sta, skb, &list);
+			#endif
 		}
 	}
 	spin_unlock(&dev->rx_lock);
@@ -1488,21 +1522,25 @@ int mt76_get_sar_power(struct mt76_phy *phy,
 #endif
 EXPORT_SYMBOL_GPL(mt76_get_sar_power);
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void
 __mt76_csa_finish(void *priv, u8 *mac, struct ieee80211_vif *vif)
 {
 	if (vif->csa_active && ieee80211_beacon_cntdwn_is_complete(vif))
 		ieee80211_csa_finish(vif);
 }
+#endif
 
 void mt76_csa_finish(struct mt76_dev *dev)
 {
 	if (!dev->csa_complete)
 		return;
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	ieee80211_iterate_active_interfaces_atomic(dev->hw,
 		IEEE80211_IFACE_ITER_RESUME_ALL,
 		__mt76_csa_finish, dev);
+	#endif
 
 	dev->csa_complete = 0;
 }
@@ -1511,12 +1549,15 @@ EXPORT_SYMBOL_GPL(mt76_csa_finish);
 static void
 __mt76_csa_check(void *priv, u8 *mac, struct ieee80211_vif *vif)
 {
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	struct mt76_dev *dev = priv;
+	#endif
 
 	if (!vif->csa_active)
 		return;
-
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	dev->csa_complete |= ieee80211_beacon_cntdwn_is_complete(vif);
+	#endif
 }
 
 void mt76_csa_check(struct mt76_dev *dev)

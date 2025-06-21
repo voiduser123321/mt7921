@@ -53,12 +53,14 @@ bool mt7921_mac_wtbl_update(struct mt7921_dev *dev, int idx, u32 mask)
 
 void mt7921_mac_sta_poll(struct mt7921_dev *dev)
 {
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	static const u8 ac_to_tid[] = {
 		[IEEE80211_AC_BE] = 0,
 		[IEEE80211_AC_BK] = 1,
 		[IEEE80211_AC_VI] = 4,
 		[IEEE80211_AC_VO] = 6
 	};
+#endif
 	struct ieee80211_sta *sta;
 	struct mt7921_sta *msta;
 	u32 tx_time[IEEE80211_NUM_ACS], rx_time[IEEE80211_NUM_ACS];
@@ -120,13 +122,17 @@ void mt7921_mac_sta_poll(struct mt7921_dev *dev)
 			u8 q = mt76_connac_lmac_mapping(i);
 			u32 tx_cur = tx_time[q];
 			u32 rx_cur = rx_time[q];
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			u8 tid = ac_to_tid[i];
+#endif
 
 			if (!tx_cur && !rx_cur)
 				continue;
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			ieee80211_sta_register_airtime(sta, tid, tx_cur,
 						       rx_cur);
+#endif
 		}
 
 		/* We don't support reading GI info from txs packets.
@@ -358,10 +364,13 @@ mt7921_get_status_freq_info(struct mt7921_dev *dev, struct mt76_phy *mphy,
 		return;
 	}
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (chfreq > 180) {
 		status->band = NL80211_BAND_6GHZ;
 		chfreq = (chfreq - 181) * 4 + 1;
-	} else if (chfreq > 14) {
+	} else 
+	#endif 
+	if (chfreq > 14) {
 		status->band = NL80211_BAND_5GHZ;
 	} else {
 		status->band = NL80211_BAND_2GHZ;
@@ -542,9 +551,11 @@ mt7921_mac_fill_rx(struct mt7921_dev *dev, struct sk_buff *skb)
 	case NL80211_BAND_5GHZ:
 		sband = &mphy->sband_5g.sband;
 		break;
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	case NL80211_BAND_6GHZ:
 		sband = &mphy->sband_6g.sband;
 		break;
+	#endif
 	default:
 		sband = &mphy->sband_2g.sband;
 		break;

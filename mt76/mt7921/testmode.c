@@ -25,10 +25,12 @@ struct mt7921_tm_evt {
 	u32 param1;
 };
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static const struct nla_policy mt7921_tm_policy[NUM_MT7921_TM_ATTRS] = {
 	[MT7921_TM_ATTR_SET] = NLA_POLICY_EXACT_LEN(sizeof(struct mt7921_tm_cmd)),
 	[MT7921_TM_ATTR_QUERY] = NLA_POLICY_EXACT_LEN(sizeof(struct mt7921_tm_cmd)),
 };
+#endif
 
 static int
 mt7921_tm_set(struct mt7921_dev *dev, struct mt7921_tm_cmd *req)
@@ -128,15 +130,19 @@ int mt7921_testmode_cmd(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 	if (tb[MT76_TM_ATTR_DRV_DATA]) {
 		struct nlattr *drv_tb[NUM_MT7921_TM_ATTRS], *data;
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		int ret;
+		#endif
 
 		data = tb[MT76_TM_ATTR_DRV_DATA];
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		ret = nla_parse_nested_deprecated(drv_tb,
 						  MT7921_TM_ATTR_MAX,
 						  data, mt7921_tm_policy,
 						  NULL);
 		if (ret)
 			return ret;
+		#endif
 
 		data = drv_tb[MT7921_TM_ATTR_SET];
 		if (data)
@@ -169,15 +175,19 @@ int mt7921_testmode_dump(struct ieee80211_hw *hw, struct sk_buff *msg,
 
 	if (tb[MT76_TM_ATTR_DRV_DATA]) {
 		struct nlattr *drv_tb[NUM_MT7921_TM_ATTRS], *data;
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		int ret;
+		#endif
 
 		data = tb[MT76_TM_ATTR_DRV_DATA];
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		ret = nla_parse_nested_deprecated(drv_tb,
 						  MT7921_TM_ATTR_MAX,
 						  data, mt7921_tm_policy,
 						  NULL);
 		if (ret)
 			return ret;
+		#endif
 
 		data = drv_tb[MT7921_TM_ATTR_QUERY];
 		if (data) {

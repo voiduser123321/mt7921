@@ -689,6 +689,7 @@ mt76_connac_mcu_sta_he_tlv(struct sk_buff *skb, struct ieee80211_sta *sta)
 	    IEEE80211_HE_PHY_CAP8_HE_ER_SU_1XLTF_AND_08_US_GI)
 		cap |= STA_REC_HE_CAP_ER_SU_PPDU_1LTF_8US_GI;
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (elem->phy_cap_info[9] &
 	    IEEE80211_HE_PHY_CAP9_NON_TRIGGERED_CQI_FEEDBACK)
 		cap |= STA_REC_HE_CAP_TRIG_CQI_FK;
@@ -700,6 +701,7 @@ mt76_connac_mcu_sta_he_tlv(struct sk_buff *skb, struct ieee80211_sta *sta)
 	if (elem->phy_cap_info[9] &
 	    IEEE80211_HE_PHY_CAP9_RX_1024_QAM_LESS_THAN_242_TONE_RU)
 		cap |= STA_REC_HE_CAP_RX_1024QAM_UNDER_RU242;
+	#endif
 
 	he->he_cap = cpu_to_le32(cap);
 
@@ -758,7 +760,9 @@ mt76_connac_get_phy_mode_v2(struct mt76_phy *mphy, struct ieee80211_vif *vif,
 		ht_cap = &sta->ht_cap;
 		vht_cap = &sta->vht_cap;
 		he_cap = &sta->he_cap;
-	} else {
+	} 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
+	else {
 		struct ieee80211_supported_band *sband;
 
 		sband = mphy->hw->wiphy->bands[band];
@@ -766,6 +770,7 @@ mt76_connac_get_phy_mode_v2(struct mt76_phy *mphy, struct ieee80211_vif *vif,
 		vht_cap = &sband->vht_cap;
 		he_cap = ieee80211_get_he_iftype_cap(sband, vif->type);
 	}
+	#endif
 
 	if (band == NL80211_BAND_2GHZ) {
 		mode |= PHY_TYPE_BIT_HR_DSSS | PHY_TYPE_BIT_ERP;
@@ -775,7 +780,9 @@ mt76_connac_get_phy_mode_v2(struct mt76_phy *mphy, struct ieee80211_vif *vif,
 
 		if (he_cap && he_cap->has_he)
 			mode |= PHY_TYPE_BIT_HE;
-	} else if (band == NL80211_BAND_5GHZ || band == NL80211_BAND_6GHZ) {
+	} 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87) 
+	else if (band == NL80211_BAND_5GHZ || band == NL80211_BAND_6GHZ) {
 		mode |= PHY_TYPE_BIT_OFDM;
 
 		if (ht_cap->ht_supported)
@@ -786,7 +793,8 @@ mt76_connac_get_phy_mode_v2(struct mt76_phy *mphy, struct ieee80211_vif *vif,
 
 		if (he_cap && he_cap->has_he)
 			mode |= PHY_TYPE_BIT_HE;
-	}
+	} 
+	#endif
 
 	return mode;
 }
@@ -839,6 +847,7 @@ void mt76_connac_mcu_sta_tlv(struct mt76_phy *mphy, struct sk_buff *skb,
 	/* starec he */
 	if (sta->he_cap.has_he) {
 		mt76_connac_mcu_sta_he_tlv(skb, sta);
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		if (band == NL80211_BAND_6GHZ &&
 		    sta_state == MT76_STA_INFO_STATE_ASSOC) {
 			struct sta_rec_he_6g_capa *he_6g_capa;
@@ -848,6 +857,7 @@ void mt76_connac_mcu_sta_tlv(struct mt76_phy *mphy, struct sk_buff *skb,
 			he_6g_capa = (struct sta_rec_he_6g_capa *)tlv;
 			he_6g_capa->capa = sta->he_6ghz_capa.capa;
 		}
+		#endif
 	}
 
 	tlv = mt76_connac_mcu_add_tlv(skb, STA_REC_PHY, sizeof(*phy));
@@ -906,10 +916,13 @@ void mt76_connac_mcu_wtbl_ht_tlv(struct mt76_dev *dev, struct sk_buff *skb,
 				 struct ieee80211_sta *sta, void *sta_wtbl,
 				 void *wtbl_tlv, bool ht_ldpc, bool vht_ldpc)
 {
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	struct wtbl_ht *ht = NULL;
+	#endif
 	struct tlv *tlv;
 	u32 flags = 0;
-
+	
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (sta->ht_cap.ht_supported || sta->he_6ghz_capa.capa) {
 		tlv = mt76_connac_mcu_add_nested_tlv(skb, WTBL_HT, sizeof(*ht),
 						     wtbl_tlv, sta_wtbl);
@@ -947,6 +960,7 @@ void mt76_connac_mcu_wtbl_ht_tlv(struct mt76_dev *dev, struct sk_buff *skb,
 		if (ht)
 			ht->af = max(ht->af, af);
 	}
+	#endif
 
 	mt76_connac_mcu_wtbl_smps_tlv(skb, sta, sta_wtbl, wtbl_tlv);
 
@@ -1239,7 +1253,9 @@ u8 mt76_connac_get_phy_mode(struct mt76_phy *phy, struct ieee80211_vif *vif,
 		ht_cap = &sta->ht_cap;
 		vht_cap = &sta->vht_cap;
 		he_cap = &sta->he_cap;
-	} else {
+	} 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
+	else {
 		struct ieee80211_supported_band *sband;
 
 		sband = phy->hw->wiphy->bands[band];
@@ -1247,6 +1263,7 @@ u8 mt76_connac_get_phy_mode(struct mt76_phy *phy, struct ieee80211_vif *vif,
 		vht_cap = &sband->vht_cap;
 		he_cap = ieee80211_get_he_iftype_cap(sband, vif->type);
 	}
+	#endif
 
 	if (band == NL80211_BAND_2GHZ) {
 		mode |= PHY_MODE_B | PHY_MODE_G;
@@ -1267,15 +1284,19 @@ u8 mt76_connac_get_phy_mode(struct mt76_phy *phy, struct ieee80211_vif *vif,
 
 		if (he_cap && he_cap->has_he)
 			mode |= PHY_MODE_AX_5G;
-	} else if (band == NL80211_BAND_6GHZ) {
+	} 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87) 
+	else if (band == NL80211_BAND_6GHZ) {
 		mode |= PHY_MODE_A | PHY_MODE_AN |
 			PHY_MODE_AC | PHY_MODE_AX_5G;
 	}
+	#endif
 
 	return mode;
 }
 EXPORT_SYMBOL_GPL(mt76_connac_get_phy_mode);
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 const struct ieee80211_sta_he_cap *
 mt76_connac_get_he_phy_cap(struct mt76_phy *phy, struct ieee80211_vif *vif)
 {
@@ -1287,6 +1308,7 @@ mt76_connac_get_he_phy_cap(struct mt76_phy *phy, struct ieee80211_vif *vif)
 	return ieee80211_get_he_iftype_cap(sband, vif->type);
 }
 EXPORT_SYMBOL_GPL(mt76_connac_get_he_phy_cap);
+#endif
 
 #define DEFAULT_HE_PE_DURATION		4
 #define DEFAULT_HE_DURATION_RTS_THRES	1023
@@ -1294,10 +1316,14 @@ static void
 mt76_connac_mcu_uni_bss_he_tlv(struct mt76_phy *phy, struct ieee80211_vif *vif,
 			       struct tlv *tlv)
 {
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	const struct ieee80211_sta_he_cap *cap;
+	#endif
 	struct bss_info_uni_he *he;
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	cap = mt76_connac_get_he_phy_cap(phy, vif);
+	#endif
 
 	he = (struct bss_info_uni_he *)tlv;
 	he->he_pe_duration = vif->bss_conf.htc_trig_based_pkt_ext;
@@ -1308,9 +1334,11 @@ mt76_connac_mcu_uni_bss_he_tlv(struct mt76_phy *phy, struct ieee80211_vif *vif,
 	if (!he->he_rts_thres)
 		he->he_rts_thres = cpu_to_le16(DEFAULT_HE_DURATION_RTS_THRES);
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	he->max_nss_mcs[CMD_HE_MCS_BW80] = cap->he_mcs_nss_supp.tx_mcs_80;
 	he->max_nss_mcs[CMD_HE_MCS_BW160] = cap->he_mcs_nss_supp.tx_mcs_160;
 	he->max_nss_mcs[CMD_HE_MCS_BW8080] = cap->he_mcs_nss_supp.tx_mcs_80p80;
+	#endif
 }
 
 int mt76_connac_mcu_uni_add_bss(struct mt76_phy *phy,
@@ -1393,8 +1421,10 @@ int mt76_connac_mcu_uni_add_bss(struct mt76_phy *phy,
 
 	idx = mvif->omac_idx > EXT_BSSID_START ? HW_BSSID_0 : mvif->omac_idx;
 	basic_req.basic.hw_bss_idx = idx;
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (band == NL80211_BAND_6GHZ)
 		basic_req.basic.phymode_ext = PHY_MODE_AX_6G;
+	#endif
 
 	basic_phy = mt76_connac_get_phy_mode_v2(phy, vif, band, NULL);
 	basic_req.basic.nonht_basic_phy = cpu_to_le16(basic_phy);
@@ -1440,7 +1470,9 @@ int mt76_connac_mcu_uni_add_bss(struct mt76_phy *phy,
 				u8 pad[3];
 			} __packed hdr;
 			struct bss_info_uni_he he;
+			#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			struct bss_info_uni_bss_color bss_color;
+			#endif
 		} he_req = {
 			.hdr = {
 				.bss_idx = mvif->idx,
@@ -1449,20 +1481,24 @@ int mt76_connac_mcu_uni_add_bss(struct mt76_phy *phy,
 				.tag = cpu_to_le16(UNI_BSS_INFO_HE_BASIC),
 				.len = cpu_to_le16(sizeof(struct bss_info_uni_he)),
 			},
+			#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			.bss_color = {
 				.tag = cpu_to_le16(UNI_BSS_INFO_BSS_COLOR),
 				.len = cpu_to_le16(sizeof(struct bss_info_uni_bss_color)),
 				.enable = 0,
 				.bss_color = 0,
 			},
+			#endif
 		};
-
+		
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		if (enable) {
 			he_req.bss_color.enable =
 				vif->bss_conf.he_bss_color.enabled;
 			he_req.bss_color.bss_color =
 				vif->bss_conf.he_bss_color.color;
 		}
+		#endif
 
 		mt76_connac_mcu_uni_bss_he_tlv(phy, vif,
 					       (struct tlv *)&he_req.he);
@@ -1571,9 +1607,11 @@ int mt76_connac_mcu_hw_scan(struct mt76_phy *phy, struct ieee80211_vif *vif,
 		case NL80211_BAND_2GHZ:
 			chan->band = 1;
 			break;
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		case NL80211_BAND_6GHZ:
 			chan->band = 3;
 			break;
+		#endif
 		default:
 			chan->band = 2;
 			break;
@@ -1693,9 +1731,11 @@ int mt76_connac_mcu_sched_scan_req(struct mt76_phy *phy,
 		case NL80211_BAND_2GHZ:
 			chan->band = 1;
 			break;
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		case NL80211_BAND_6GHZ:
 			chan->band = 3;
 			break;
+		#endif
 		default:
 			chan->band = 2;
 			break;
@@ -1892,9 +1932,11 @@ int mt76_connac_mcu_get_nic_capability(struct mt76_phy *phy)
 			break;
 
 		switch (le32_to_cpu(tlv->type)) {
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		case MT_NIC_CAP_6G:
 			phy->cap.has_6ghz = skb->data[0];
 			break;
+		#endif
 		case MT_NIC_CAP_MAC_ADDR:
 			memcpy(phy->macaddr, (void *)skb->data, ETH_ALEN);
 			break;
@@ -1976,9 +2018,11 @@ static s8 mt76_connac_get_ch_power(struct mt76_phy *phy,
 	case NL80211_BAND_5GHZ:
 		sband = &phy->sband_5g.sband;
 		break;
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	case NL80211_BAND_6GHZ:
 		sband = &phy->sband_6g.sband;
 		break;
+	#endif
 	default:
 		return target_power;
 	}
@@ -2020,6 +2064,7 @@ mt76_connac_mcu_rate_txpower_band(struct mt76_phy *phy,
 		142, 144, 149, 151, 153, 155, 157,
 		159, 161, 165
 	};
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	static const u8 chan_list_6ghz[] = {
 		  1,   3,   5,   7,   9,  11,  13,
 		 15,  17,  19,  21,  23,  25,  27,
@@ -2038,6 +2083,7 @@ mt76_connac_mcu_rate_txpower_band(struct mt76_phy *phy,
 		209, 211, 213, 215, 217, 219, 221,
 		225, 227, 229, 233
 	};
+	#endif
 	int i, n_chan, batch_size, idx = 0, tx_power, last_ch;
 	struct mt76_connac_sku_tlv sku_tlbv;
 	struct mt76_power_limits limits;
@@ -2051,18 +2097,24 @@ mt76_connac_mcu_rate_txpower_band(struct mt76_phy *phy,
 	if (band == NL80211_BAND_2GHZ) {
 		n_chan = ARRAY_SIZE(chan_list_2ghz);
 		ch_list = chan_list_2ghz;
-	} else if (band == NL80211_BAND_6GHZ) {
+	} 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87) 
+	else if (band == NL80211_BAND_6GHZ) {
 		n_chan = ARRAY_SIZE(chan_list_6ghz);
 		ch_list = chan_list_6ghz;
-	} else {
+	} 
+	#endif 
+	else {
 		n_chan = ARRAY_SIZE(chan_list_5ghz);
 		ch_list = chan_list_5ghz;
 	}
 	batch_size = DIV_ROUND_UP(n_chan, batch_len);
-
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (phy->cap.has_6ghz)
 		last_ch = chan_list_6ghz[ARRAY_SIZE(chan_list_6ghz) - 1];
-	else if (phy->cap.has_5ghz)
+	else 
+	#endif
+	if (phy->cap.has_5ghz)
 		last_ch = chan_list_5ghz[ARRAY_SIZE(chan_list_5ghz) - 1];
 	else
 		last_ch = chan_list_2ghz[ARRAY_SIZE(chan_list_2ghz) - 1];
@@ -2088,9 +2140,11 @@ mt76_connac_mcu_rate_txpower_band(struct mt76_phy *phy,
 		case NL80211_BAND_2GHZ:
 			tx_power_tlv.band = 1;
 			break;
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		case NL80211_BAND_6GHZ:
 			tx_power_tlv.band = 3;
 			break;
+		#endif
 		default:
 			tx_power_tlv.band = 2;
 			break;
@@ -2146,12 +2200,14 @@ int mt76_connac_mcu_set_rate_txpower(struct mt76_phy *phy)
 		if (err < 0)
 			return err;
 	}
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (phy->cap.has_6ghz) {
 		err = mt76_connac_mcu_rate_txpower_band(phy,
 							NL80211_BAND_6GHZ);
 		if (err < 0)
 			return err;
 	}
+	#endif
 
 	return 0;
 }
@@ -2688,6 +2744,7 @@ int mt76_connac_mcu_bss_basic_tlv(struct sk_buff *skb,
 	case NL80211_IFTYPE_MONITOR:
 		break;
 	case NL80211_IFTYPE_AP:
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		if (ieee80211_hw_check(phy->hw, SUPPORTS_MULTI_BSSID)) {
 			u8 bssid_id = vif->bss_conf.bssid_indicator;
 //			struct wiphy *wiphy = phy->hw->wiphy;
@@ -2698,6 +2755,7 @@ int mt76_connac_mcu_bss_basic_tlv(struct sk_buff *skb,
 			bss->non_tx_bssid = vif->bss_conf.bssid_index;
 			bss->max_bssid = bssid_id;
 		}
+		#endif
 		break;
 	case NL80211_IFTYPE_STATION:
 		if (enable) {

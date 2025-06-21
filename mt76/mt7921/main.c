@@ -130,6 +130,7 @@ mt7921_init_he_caps(struct mt7921_phy *phy, enum nl80211_band band,
 #else
 				IEEE80211_HE_PHY_CAP7_HE_SU_MU_PPDU_4XLTF_AND_08_US_GI;
 #endif
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			he_cap_elem->phy_cap_info[8] |=
 				IEEE80211_HE_PHY_CAP8_20MHZ_IN_40MHZ_HE_PPDU_IN_2G |
 				IEEE80211_HE_PHY_CAP8_DCM_MAX_RU_484;
@@ -140,6 +141,7 @@ mt7921_init_he_caps(struct mt7921_phy *phy, enum nl80211_band band,
 				IEEE80211_HE_PHY_CAP9_RX_1024_QAM_LESS_THAN_242_TONE_RU |
 				IEEE80211_HE_PHY_CAP9_RX_FULL_BW_SU_USING_MU_WITH_COMP_SIGB |
 				IEEE80211_HE_PHY_CAP9_RX_FULL_BW_SU_USING_MU_WITH_NON_COMP_SIGB;
+#endif
 
 			if (is_mt7922(phy->mt76->dev)) {
 				he_cap_elem->phy_cap_info[0] |=
@@ -162,12 +164,16 @@ mt7921_init_he_caps(struct mt7921_phy *phy, enum nl80211_band band,
 		if (he_cap_elem->phy_cap_info[6] &
 		    IEEE80211_HE_PHY_CAP6_PPE_THRESHOLD_PRESENT) {
 			mt7921_gen_ppe_thresh(he_cap->ppe_thres, nss);
-		} else {
+		} 
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
+		else {
 			he_cap_elem->phy_cap_info[9] |=
 				u8_encode_bits(IEEE80211_HE_PHY_CAP9_NOMINAL_PKT_PADDING_16US,
 					       IEEE80211_HE_PHY_CAP9_NOMINAL_PKT_PADDING_MASK);
 		}
+		#endif
 
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		if (band == NL80211_BAND_6GHZ) {
 			struct ieee80211_supported_band *sband =
 				&phy->mt76->sband_5g.sband;
@@ -193,6 +199,7 @@ mt7921_init_he_caps(struct mt7921_phy *phy, enum nl80211_band band,
 
 			data[idx].he_6ghz_capa.capa = cpu_to_le16(cap);
 		}
+		#endif
 		idx++;
 	}
 
@@ -222,6 +229,7 @@ void mt7921_set_stream_he_caps(struct mt7921_phy *phy)
 		band->iftype_data = data;
 		band->n_iftype_data = n;
 
+		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		if (phy->mt76->cap.has_6ghz) {
 			data = phy->iftype[NL80211_BAND_6GHZ];
 			n = mt7921_init_he_caps(phy, NL80211_BAND_6GHZ, data);
@@ -230,6 +238,7 @@ void mt7921_set_stream_he_caps(struct mt7921_phy *phy)
 			band->iftype_data = data;
 			band->n_iftype_data = n;
 		}
+		#endif
 	}
 }
 
@@ -434,10 +443,12 @@ static int mt7921_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 
 	/* fall back to sw encryption for unsupported ciphers */
 	switch (key->cipher) {
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	case WLAN_CIPHER_SUITE_AES_CMAC:
 		key->flags |= IEEE80211_KEY_FLAG_GENERATE_MMIE;
 		wcid_keyidx = &wcid->hw_key_idx2;
 		break;
+	#endif
 	case WLAN_CIPHER_SUITE_WEP40:
 	case WLAN_CIPHER_SUITE_WEP104:
 		if (!mvif->wep_sta)
@@ -1438,7 +1449,9 @@ const struct ieee80211_ops mt7921_ops = {
 	.get_et_stats = mt7921_get_et_stats,
 	.get_tsf = mt7921_get_tsf,
 	.set_tsf = mt7921_set_tsf,
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	.get_survey = mt76_get_survey,
+#endif
 	.get_antenna = mt76_get_antenna,
 	.set_antenna = mt7921_set_antenna,
 	.set_coverage_class = mt7921_set_coverage_class,

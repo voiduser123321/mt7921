@@ -540,21 +540,25 @@ mt76x02_mac_fill_tx_status(struct mt76x02_dev *dev, struct mt76x02_sta *msta,
 void mt76x02_send_tx_status(struct mt76x02_dev *dev,
 			    struct mt76x02_tx_status *stat, u8 *update)
 {
-	struct ieee80211_tx_info info = {};
+	struct ieee80211_tx_info  info = {};
 	struct ieee80211_tx_status status = {
 		.info = &info
 	};
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	static const u8 ac_to_tid[4] = {
 		[IEEE80211_AC_BE] = 0,
 		[IEEE80211_AC_BK] = 1,
 		[IEEE80211_AC_VI] = 4,
 		[IEEE80211_AC_VO] = 6
 	};
+	#endif
 	struct mt76_wcid *wcid = NULL;
 	struct mt76x02_sta *msta = NULL;
 	struct mt76_dev *mdev = &dev->mt76;
 	struct sk_buff_head list;
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	u32 duration = 0;
+	#endif
 	u8 cur_pktid;
 	u32 ac = 0;
 	int len = 0;
@@ -637,14 +641,16 @@ void mt76x02_send_tx_status(struct mt76x02_dev *dev,
 	if (!len)
 		goto out;
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	duration = ieee80211_calc_tx_airtime(mt76_hw(dev), &info, len);
 
 	spin_lock_bh(&dev->mt76.cc_lock);
 	dev->tx_airtime += duration;
 	spin_unlock_bh(&dev->mt76.cc_lock);
-
+	
 	if (msta)
 		ieee80211_sta_register_airtime(status.sta, ac_to_tid[ac], duration, 0);
+	#endif
 
 out:
 	rcu_read_unlock();

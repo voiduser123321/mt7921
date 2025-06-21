@@ -28,6 +28,7 @@ void mt76_pci_disable_aspm(struct pci_dev *pdev)
 		 (aspm_conf & PCI_EXP_LNKCTL_ASPM_L0S) ? "L0s" : "",
 		 (aspm_conf & PCI_EXP_LNKCTL_ASPM_L1) ? "L1" : "");
 
+	#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 87)
 	if (IS_ENABLED(CONFIG_PCIEASPM)) {
 		int err;
 
@@ -35,6 +36,7 @@ void mt76_pci_disable_aspm(struct pci_dev *pdev)
 		if (!err)
 			return;
 	}
+	#endif
 
 	/* both device and parent should have the same ASPM setting.
 	 * disable ASPM in downstream component first and then upstream.

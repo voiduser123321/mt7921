@@ -148,6 +148,7 @@ mt76x02_dfs_set_capture_mode_ctrl(struct mt76x02_dev *dev, u8 enable)
 	mt76_wr(dev, MT_BBP(DFS, 36), data);
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void mt76x02_dfs_seq_pool_put(struct mt76x02_dev *dev,
 				     struct mt76x02_dfs_sequence *seq)
 {
@@ -158,7 +159,9 @@ static void mt76x02_dfs_seq_pool_put(struct mt76x02_dev *dev,
 	dfs_pd->seq_stats.seq_pool_len++;
 	dfs_pd->seq_stats.seq_len--;
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static struct mt76x02_dfs_sequence *
 mt76x02_dfs_seq_pool_get(struct mt76x02_dev *dev)
 {
@@ -179,7 +182,9 @@ mt76x02_dfs_seq_pool_get(struct mt76x02_dev *dev)
 
 	return seq;
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static int mt76x02_dfs_get_multiple(int val, int frac, int margin)
 {
 	int remainder, factor;
@@ -201,7 +206,9 @@ static int mt76x02_dfs_get_multiple(int val, int frac, int margin)
 	}
 	return factor;
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void mt76x02_dfs_detector_reset(struct mt76x02_dev *dev)
 {
 	struct mt76x02_dfs_pattern_detector *dfs_pd = &dev->dfs_pd;
@@ -222,7 +229,9 @@ static void mt76x02_dfs_detector_reset(struct mt76x02_dev *dev)
 		mt76x02_dfs_seq_pool_put(dev, seq);
 	}
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static bool mt76x02_dfs_check_chirp(struct mt76x02_dev *dev)
 {
 	bool ret = false;
@@ -243,7 +252,9 @@ static bool mt76x02_dfs_check_chirp(struct mt76x02_dev *dev)
 
 	return ret;
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void mt76x02_dfs_get_hw_pulse(struct mt76x02_dev *dev,
 				     struct mt76x02_dfs_hw_pulse *pulse)
 {
@@ -263,7 +274,9 @@ static void mt76x02_dfs_get_hw_pulse(struct mt76x02_dev *dev,
 	/* reported burst number */
 	pulse->burst = mt76_rr(dev, MT_BBP(DFS, 22));
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static bool mt76x02_dfs_check_hw_pulse(struct mt76x02_dev *dev,
 				       struct mt76x02_dfs_hw_pulse *pulse)
 {
@@ -358,7 +371,9 @@ static bool mt76x02_dfs_check_hw_pulse(struct mt76x02_dev *dev,
 
 	return ret;
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static bool mt76x02_dfs_fetch_event(struct mt76x02_dev *dev,
 				    struct mt76x02_dfs_event *event)
 {
@@ -385,7 +400,9 @@ static bool mt76x02_dfs_fetch_event(struct mt76x02_dev *dev,
 
 	return true;
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static bool mt76x02_dfs_check_event(struct mt76x02_dev *dev,
 				    struct mt76x02_dfs_event *event)
 {
@@ -404,7 +421,9 @@ static bool mt76x02_dfs_check_event(struct mt76x02_dev *dev,
 	}
 	return true;
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void mt76x02_dfs_queue_event(struct mt76x02_dev *dev,
 				    struct mt76x02_dfs_event *event)
 {
@@ -422,7 +441,9 @@ static void mt76x02_dfs_queue_event(struct mt76x02_dev *dev,
 		event_buff->h_rb = mt76_incr(event_buff->h_rb,
 					     MT_DFS_EVENT_BUFLEN);
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static int mt76x02_dfs_create_sequence(struct mt76x02_dev *dev,
 				       struct mt76x02_dfs_event *event,
 				       u16 cur_len)
@@ -509,7 +530,9 @@ next:
 	}
 	return 0;
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static u16 mt76x02_dfs_add_event_to_sequence(struct mt76x02_dev *dev,
 					     struct mt76x02_dfs_event *event)
 {
@@ -541,7 +564,9 @@ static u16 mt76x02_dfs_add_event_to_sequence(struct mt76x02_dev *dev,
 	}
 	return max_seq_len;
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static bool mt76x02_dfs_check_detection(struct mt76x02_dev *dev)
 {
 	struct mt76x02_dfs_pattern_detector *dfs_pd = &dev->dfs_pd;
@@ -558,7 +583,9 @@ static bool mt76x02_dfs_check_detection(struct mt76x02_dev *dev)
 	}
 	return false;
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void mt76x02_dfs_add_events(struct mt76x02_dev *dev)
 {
 	struct mt76x02_dfs_pattern_detector *dfs_pd = &dev->dfs_pd;
@@ -585,7 +612,9 @@ static void mt76x02_dfs_add_events(struct mt76x02_dev *dev)
 	}
 	mt76x02_dfs_set_capture_mode_ctrl(dev, true);
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void mt76x02_dfs_check_event_window(struct mt76x02_dev *dev)
 {
 	struct mt76x02_dfs_pattern_detector *dfs_pd = &dev->dfs_pd;
@@ -608,7 +637,9 @@ static void mt76x02_dfs_check_event_window(struct mt76x02_dev *dev)
 		}
 	}
 }
+#endif
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void mt76x02_dfs_tasklet(struct tasklet_struct *t)
 {
 	struct mt76x02_dfs_pattern_detector *dfs_pd = from_tasklet(dfs_pd, t,
@@ -670,6 +701,7 @@ static void mt76x02_dfs_tasklet(struct tasklet_struct *t)
 out:
 	mt76x02_irq_enable(dev, MT_INT_GPTIMER);
 }
+#endif
 
 static void mt76x02_dfs_init_sw_detector(struct mt76x02_dev *dev)
 {
@@ -858,7 +890,9 @@ void mt76x02_dfs_init_detector(struct mt76x02_dev *dev)
 	INIT_LIST_HEAD(&dfs_pd->seq_pool);
 	dev->mt76.region = NL80211_DFS_UNSET;
 	dfs_pd->last_sw_check = jiffies;
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	tasklet_setup(&dfs_pd->dfs_tasklet, mt76x02_dfs_tasklet);
+	#endif
 }
 
 static void

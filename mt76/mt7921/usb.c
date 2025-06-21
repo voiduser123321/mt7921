@@ -169,8 +169,11 @@ static int mt7921u_probe(struct usb_interface *usb_intf,
 		.txwi_size = MT_SDIO_TXD_SIZE,
 		.drv_flags = MT_DRV_RX_DMA_HDR | MT_DRV_HW_MGMT_TXQ,
 		.survey_flags = SURVEY_INFO_TIME_TX |
-				SURVEY_INFO_TIME_RX |
-				SURVEY_INFO_TIME_BSS_RX,
+				SURVEY_INFO_TIME_RX 
+				#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
+				| SURVEY_INFO_TIME_BSS_RX
+				#endif
+				,
 		.tx_prepare_skb = mt7921_usb_sdio_tx_prepare_skb,
 		.tx_complete_skb = mt7921_usb_sdio_tx_complete_skb,
 		.tx_status_data = mt7921_usb_sdio_tx_status_data,

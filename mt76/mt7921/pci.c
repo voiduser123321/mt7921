@@ -233,8 +233,11 @@ static int mt7921_pci_probe(struct pci_dev *pdev,
 		.txwi_size = MT_TXD_SIZE + sizeof(struct mt7921_txp_common),
 		.drv_flags = MT_DRV_TXWI_NO_FREE | MT_DRV_HW_MGMT_TXQ,
 		.survey_flags = SURVEY_INFO_TIME_TX |
-				SURVEY_INFO_TIME_RX |
-				SURVEY_INFO_TIME_BSS_RX,
+				SURVEY_INFO_TIME_RX 
+				#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
+				| SURVEY_INFO_TIME_BSS_RX
+				#endif
+				,
 		.token_size = MT7921_TOKEN_SIZE,
 		.tx_prepare_skb = mt7921e_tx_prepare_skb,
 		.tx_complete_skb = mt7921e_tx_complete_skb,

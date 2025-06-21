@@ -453,8 +453,9 @@ void mt7603_mac_sta_poll(struct mt7603_dev *dev)
 
 			if (!txtime)
 				continue;
-
+			#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			ieee80211_sta_register_airtime(sta, tid, txtime, 0);
+			#endif
 		}
 	}
 

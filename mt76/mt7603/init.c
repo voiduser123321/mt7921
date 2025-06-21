@@ -505,7 +505,9 @@ int mt7603_register_device(struct mt7603_dev *dev)
 	spin_lock_init(&dev->ps_lock);
 
 	INIT_DELAYED_WORK(&dev->mphy.mac_work, mt7603_mac_work);
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	tasklet_setup(&dev->mt76.pre_tbtt_tasklet, mt7603_pre_tbtt_tasklet);
+	#endif
 
 	dev->slottime = 9;
 	dev->sensitivity_limit = 28;
@@ -529,7 +531,9 @@ int mt7603_register_device(struct mt7603_dev *dev)
 	wiphy->iface_combinations = if_comb;
 	wiphy->n_iface_combinations = ARRAY_SIZE(if_comb);
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	ieee80211_hw_set(hw, TX_STATUS_NO_AMPDU_LEN);
+	#endif
 	ieee80211_hw_set(hw, HOST_BROADCAST_PS_BUFFERING);
 	ieee80211_hw_set(hw, NEEDS_UNIQUE_STA_ADDR);
 
