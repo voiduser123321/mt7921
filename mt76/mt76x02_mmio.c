@@ -11,7 +11,6 @@
 #include "mt76x02_mcu.h"
 #include "trace.h"
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void mt76x02_pre_tbtt_tasklet(struct tasklet_struct *t)
 {
 	struct mt76x02_dev *dev = from_tasklet(dev, t, mt76.pre_tbtt_tasklet);
@@ -64,7 +63,6 @@ static void mt76x02_pre_tbtt_tasklet(struct tasklet_struct *t)
 	}
 	spin_unlock(&q->lock);
 }
-#endif
 
 static void mt76x02e_pre_tbtt_enable(struct mt76x02_dev *dev, bool en)
 {
@@ -183,6 +181,8 @@ int mt76x02_dma_init(struct mt76x02_dev *dev)
 	dev->mt76.tx_worker.fn = mt76x02_tx_worker;
 	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	tasklet_setup(&dev->mt76.pre_tbtt_tasklet, mt76x02_pre_tbtt_tasklet);
+	#else
+	DECLARE_TASKLET(mt76x02_pre_tbtt_tasklet, mt76x02_pre_tbtt_tasklet, 0);
 	#endif
 
 	spin_lock_init(&dev->txstatus_fifo_lock);
