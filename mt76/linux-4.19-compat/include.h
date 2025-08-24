@@ -67,13 +67,13 @@ static inline u64 ktime_get_boottime_ns(void)
  *
  * Returns: 0 on success or a negative error code.
  */
+
 static inline int nla_parse_deprecated(struct nlattr **tb, int maxtype, const struct nlattr *head, int len, const struct nla_policy *policy, struct netlink_ext_ack *extack)
 {
         return nla_parse(tb, maxtype, head, len, policy, extack);
 }
 
 //******************************
-//PROBABLY SHOULD DISABLE EVERYTHING BELOW
 /* include/linux/ieee80211.h */
 
 #define IEEE80211_HE_MAC_CAP3_MAX_AMPDU_LEN_EXP_MASK            	0x18
