@@ -1,17 +1,18 @@
 # SPDX-License-Identifier: GPL-2.0-only
 config MT76_CORE
 	tristate
-	default m
+	default y
 
 config MT76_LEDS
 	bool
 	depends on MT76_CORE
 	depends on LEDS_CLASS=y || MT76_CORE=LEDS_CLASS
+	default y
 
 config MT76_USB
 	tristate
 	depends on MT76_CORE
-	default m
+	default y
 
 config MT76_SDIO
 	tristate

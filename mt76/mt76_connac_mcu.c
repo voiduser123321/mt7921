@@ -139,6 +139,7 @@ int mt76_connac_mcu_set_channel_domain(struct mt76_phy *phy)
 		skb_put_data(skb, &channel, sizeof(channel));
 		n_5ch++;
 	}
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	for (i = 0; i < phy->sband_6g.sband.n_channels; i++) {
 		chan = &phy->sband_6g.sband.channels[i];
 		if (chan->flags & IEEE80211_CHAN_DISABLED)
@@ -151,6 +152,7 @@ int mt76_connac_mcu_set_channel_domain(struct mt76_phy *phy)
 		skb_put_data(skb, &channel, sizeof(channel));
 		n_6ch++;
 	}
+#endif
 
 	BUILD_BUG_ON(sizeof(dev->alpha2) > sizeof(hdr.alpha2));
 	memcpy(hdr.alpha2, dev->alpha2, sizeof(dev->alpha2));

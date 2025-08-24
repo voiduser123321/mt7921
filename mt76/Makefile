@@ -38,4 +38,4 @@ obj-$(CONFIG_MT76x2_COMMON) += mt76x2/
 obj-$(CONFIG_MT7603E) += mt7603/
 obj-$(CONFIG_MT7615_COMMON) += mt7615/
 obj-$(CONFIG_MT7915E) += mt7915/
-obj-m += mt7921/
+obj-$(CONFIG_MT7921_COMMON) += mt7921/

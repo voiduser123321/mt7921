@@ -450,9 +450,9 @@ mt76_phy_init(struct mt76_phy *phy, struct ieee80211_hw *hw)
 	phy->frp = devm_kcalloc(dev->dev, wiphy->sar_capa->num_freq_ranges,
 				sizeof(struct mt76_freq_range_power),
 				GFP_KERNEL);
-#endif
 	if (!phy->frp)
 		return -ENOMEM;
+#endif
 
 	hw->txq_data_size = sizeof(struct mt76_txq);
 	hw->uapsd_max_sp_len = IEEE80211_WMM_IE_STA_QOSINFO_SP_ALL;
@@ -1297,6 +1297,8 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
 		mt76_rx_convert(dev, skb, &hw, &sta);
 		#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 		ieee80211_rx_list(hw, sta, skb, &list);
+		#else
+		ieee80211_rx(hw, skb);
 		#endif
 
 		/* subsequent amsdu frames */
@@ -1308,6 +1310,8 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
 			mt76_rx_convert(dev, skb, &hw, &sta);
 			#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 			ieee80211_rx_list(hw, sta, skb, &list);
+			#else
+			ieee80211_rx(hw, skb);
 			#endif
 		}
 	}
@@ -1522,25 +1526,26 @@ int mt76_get_sar_power(struct mt76_phy *phy,
 #endif
 EXPORT_SYMBOL_GPL(mt76_get_sar_power);
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void
 __mt76_csa_finish(void *priv, u8 *mac, struct ieee80211_vif *vif)
 {
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (vif->csa_active && ieee80211_beacon_cntdwn_is_complete(vif))
 		ieee80211_csa_finish(vif);
+	#else
+	if (vif->csa_active)
+		ieee80211_csa_finish(vif);
+	#endif
 }
-#endif
 
 void mt76_csa_finish(struct mt76_dev *dev)
 {
 	if (!dev->csa_complete)
 		return;
 
-	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	ieee80211_iterate_active_interfaces_atomic(dev->hw,
 		IEEE80211_IFACE_ITER_RESUME_ALL,
 		__mt76_csa_finish, dev);
-	#endif
 
 	dev->csa_complete = 0;
 }

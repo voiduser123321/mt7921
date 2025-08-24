@@ -13,12 +13,7 @@
 /* include/linux/interrupt.h */
 
 #define from_tasklet(var, callback_tasklet, tasklet_fieldname)  \
-        container_of(callback_tasklet, typeof(*var), tasklet_fieldname)
-//******************************
-/* include/linux/ieee80211.h */
-
-#define IEEE80211_HE_MAC_CAP3_MAX_AMPDU_LEN_EXP_MASK            	0x18
-#define IEEE80211_HE_PHY_CAP8_DCM_MAX_RU_MASK                           0xc0
+        container_of(callback_tasklet, typeof(*var), tasklet_fieldname)                         0xc0
 
 //******************************
 /* include/linux/lockdep.h */
@@ -52,6 +47,37 @@ static inline u64 ktime_get_boottime_ns(void)
 {
         return ktime_to_ns(ktime_get_boottime());
 }
+
+//******************************
+/* include/net/netlink.h */
+
+/**
+ * nla_parse_deprecated - Parse a stream of attributes into a tb buffer
+ * @tb: destination array with maxtype+1 elements
+ * @maxtype: maximum attribute type to be expected
+ * @head: head of attribute stream
+ * @len: length of attribute stream
+ * @policy: validation policy
+ * @extack: extended ACK pointer
+ *
+ * Parses a stream of attributes and stores a pointer to each attribute in
+ * the tb array accessible via the attribute type. Attributes with a type
+ * exceeding maxtype will be ignored and attributes from the policy are not
+ * always strictly validated (only for new attributes).
+ *
+ * Returns: 0 on success or a negative error code.
+ */
+static inline int nla_parse_deprecated(struct nlattr **tb, int maxtype, const struct nlattr *head, int len, const struct nla_policy *policy, struct netlink_ext_ack *extack)
+{
+        return nla_parse(tb, maxtype, head, len, policy, extack);
+}
+
+//******************************
+//PROBABLY SHOULD DISABLE EVERYTHING BELOW
+/* include/linux/ieee80211.h */
+
+#define IEEE80211_HE_MAC_CAP3_MAX_AMPDU_LEN_EXP_MASK            	0x18
+#define IEEE80211_HE_PHY_CAP8_DCM_MAX_RU_MASK  				0xc0	
 
 //******************************
 /* include/net/cfg80211.h */
@@ -94,38 +120,8 @@ struct survey_info_linux_4_9_compat {
 
 #define IEEE80211_AMPDU_TX_START_IMMEDIATE 1
 
-u32 ieee80211_calc_tx_airtime(struct ieee80211_hw *hw,
-                              struct ieee80211_tx_info *info,
-                              int len);
-
 enum mac80211_tx_info_flags_linux4_9_compat {
 
 	IEEE80211_TX_CTL_HW_80211_ENCAP		= BIT(14)
 
 };
-
-//******************************
-/* include/net/netlink.h */
-
-/**
- * nla_parse_deprecated - Parse a stream of attributes into a tb buffer
- * @tb: destination array with maxtype+1 elements
- * @maxtype: maximum attribute type to be expected
- * @head: head of attribute stream
- * @len: length of attribute stream
- * @policy: validation policy
- * @extack: extended ACK pointer
- *
- * Parses a stream of attributes and stores a pointer to each attribute in
- * the tb array accessible via the attribute type. Attributes with a type
- * exceeding maxtype will be ignored and attributes from the policy are not
- * always strictly validated (only for new attributes).
- *
- * Returns: 0 on success or a negative error code.
- */
-static inline int nla_parse_deprecated(struct nlattr **tb, int maxtype, const struct nlattr *head, int len, const struct nla_policy *policy, struct netlink_ext_ack *extack)
-{
-        return nla_parse(tb, maxtype, head, len, policy, extack);
-}
-
-//******************************
