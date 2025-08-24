@@ -342,7 +342,9 @@ mt76_tx(struct mt76_phy *phy, struct ieee80211_sta *sta,
 	}
 
 	if ((dev->drv->drv_flags & MT_DRV_HW_MGMT_TXQ) &&
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	    !(info->flags & IEEE80211_TX_CTL_HW_80211_ENCAP) &&
+	#endif
 	    !ieee80211_is_data(hdr->frame_control) &&
 	    !ieee80211_is_bufferable_mmpdu(hdr->frame_control)) {
 		qid = MT_TXQ_PSD;

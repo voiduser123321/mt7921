@@ -80,48 +80,7 @@ static inline int nla_parse_deprecated(struct nlattr **tb, int maxtype, const st
 #define IEEE80211_HE_PHY_CAP8_DCM_MAX_RU_MASK  				0xc0	
 
 //******************************
-/* include/net/cfg80211.h */
-/**
- * struct survey_info - channel survey response
- *
- * @channel: the channel this survey record reports, may be %NULL for a single
- *	record to report global statistics
- * @filled: bitflag of flags from &enum survey_info_flags
- * @noise: channel noise in dBm. This and all following fields are
- *	optional
- * @time: amount of time in ms the radio was turn on (on the channel)
- * @time_busy: amount of time the primary channel was sensed busy
- * @time_ext_busy: amount of time the extension channel was sensed busy
- * @time_rx: amount of time the radio spent receiving data
- * @time_tx: amount of time the radio spent transmitting data
- * @time_scan: amount of time the radio spent for scanning
- * @time_bss_rx: amount of time the radio spent receiving data on a local BSS
- *
- * Used by dump_survey() to report back per-channel survey information.
- *
- * This structure can later be expanded with things like
- * channel duty cycle etc.
- */
-struct survey_info_linux_4_9_compat {
-	struct ieee80211_channel *channel;
-	u64 time;
-	u64 time_busy;
-	u64 time_ext_busy;
-	u64 time_rx;
-	u64 time_tx;
-	u64 time_scan;
-	u64 time_bss_rx;
-	u32 filled;
-	s8 noise;
-};
-
-//******************************
 /* include/net/mac80211.h */
 
 #define IEEE80211_AMPDU_TX_START_IMMEDIATE 1
 
-enum mac80211_tx_info_flags_linux4_9_compat {
-
-	IEEE80211_TX_CTL_HW_80211_ENCAP		= BIT(14)
-
-};

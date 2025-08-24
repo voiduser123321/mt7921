@@ -884,7 +884,7 @@ void mt76_set_channel(struct mt76_phy *phy)
 EXPORT_SYMBOL_GPL(mt76_set_channel);
 
 int mt76_get_survey(struct ieee80211_hw *hw, int idx,
-		    struct SURVEYINFO *survey)
+		    struct survey_info *survey)
 {
 	struct mt76_phy *phy = hw->priv;
 	struct mt76_dev *dev = phy->dev;
@@ -941,7 +941,9 @@ int mt76_get_survey(struct ieee80211_hw *hw, int idx,
 	survey->noise = state->noise;
 
 	spin_lock_bh(&dev->cc_lock);
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	survey->time_bss_rx = div_u64(state->cc_bss_rx, 1000);
+	#endif
 	survey->time_tx = div_u64(state->cc_tx, 1000);
 	spin_unlock_bh(&dev->cc_lock);
 

@@ -820,6 +820,7 @@ mt7921_mac_fill_rx(struct mt7921_dev *dev, struct sk_buff *skb)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 static void
 mt7921_mac_write_txwi_8023(struct mt7921_dev *dev, __le32 *txwi,
 			   struct sk_buff *skb, struct mt76_wcid *wcid)
@@ -858,6 +859,7 @@ mt7921_mac_write_txwi_8023(struct mt7921_dev *dev, __le32 *txwi,
 	      FIELD_PREP(MT_TXD7_SUB_TYPE, fc_stype);
 	txwi[7] |= cpu_to_le32(val);
 }
+#endif
 
 static void
 mt7921_mac_write_txwi_80211(struct mt7921_dev *dev, __le32 *txwi,
@@ -954,7 +956,9 @@ void mt7921_mac_write_txwi(struct mt7921_dev *dev, __le32 *txwi,
 	u8 p_fmt, q_idx, omac_idx = 0, wmm_idx = 0;
 	bool is_mmio = mt76_is_mmio(&dev->mt76);
 	u32 sz_txd = is_mmio ? MT_TXD_SIZE : MT_SDIO_TXD_SIZE;
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	bool is_8023 = info->flags & IEEE80211_TX_CTL_HW_80211_ENCAP;
+	#endif
 	u16 tx_count = 15;
 	u32 val;
 
@@ -1006,9 +1010,11 @@ void mt7921_mac_write_txwi(struct mt7921_dev *dev, __le32 *txwi,
 	txwi[6] = 0;
 	txwi[7] = wcid->amsdu ? cpu_to_le32(MT_TXD7_HW_AMSDU) : 0;
 
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 19, 87)
 	if (is_8023)
 		mt7921_mac_write_txwi_8023(dev, txwi, skb, wcid);
 	else
+	#endif
 		mt7921_mac_write_txwi_80211(dev, txwi, skb, key);
 
 	if (txwi[2] & cpu_to_le32(MT_TXD2_FIX_RATE)) {
